@@ -2,12 +2,14 @@ public class LaunchEvent implements Runnable {
 
     private int start;
     private String message;
-    TimeMonitor tm;
+    private TimeMonitor tm;
+    private boolean isInterrupting;
 
-    public LaunchEvent(int start, String message, TimeMonitor monitor) {
+    public LaunchEvent(int start, String message, TimeMonitor monitor, boolean isInterrupting) {
         this.start = start;
         this.message = message;
         this.tm = monitor;
+        this.isInterrupting = isInterrupting;
     }
 
     public void run() {
@@ -21,19 +23,26 @@ public class LaunchEvent implements Runnable {
                 aborted = true;
             }
 
+            int a = tm.getTime();
             if (tm.getTime() <= start) {
+
                 System.out.println(this.message);
                 eventDone = true;
                 //this will abort
-                System.out.println("ABORTED!!!");
-                tm.abortCountDown();
+                if (isInterrupting) {
+                    tm.abortCountDown();
+                    System.out.println("Aborting because: " + this.message);
+                    break;
+                }
             }
             if (Thread.interrupted()) {
+                tm.abortCountDown();
+                System.out.println("ABORTED!!!");
                 aborted = true;
 
             }
             if (aborted) {
-                System.out.println("Aborting: " + this.message);
+                System.out.println(this.message + " is aborted");
                 break;
             }
         }
